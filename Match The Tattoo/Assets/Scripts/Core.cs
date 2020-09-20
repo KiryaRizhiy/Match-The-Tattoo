@@ -5,18 +5,27 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 public class Core: MonoBehaviour
 {
     public GameObject camera;
+    public GameObject controlFrame;
     public List<Sprite> stencilSprites;
     public List<GameObject> templates;
     public Material stencilMaterial;
-    public float _dragMultiplier;
-    public float _positionMaxAccaptableShift;
-    public float _scaleMaxAcceptableShift;
-    public float _angleMaxAccaptableShift;
+    public float _positionGreenZone;
+    public float _positionYellowZone;
+    public float _scaleGreenZone;
+    public float _scaleYellowZone;
+    public float _angleGreenZone;
+    public float _angleYellowZone;
+    public float _minScale;
+    public float _maxScale;
+    public float _xBoarder;
+    public float _yTopBoarder;
+    public float _yBottomBoarder;
 
     #region Linking acceptors
     protected GameObject _template
@@ -50,7 +59,6 @@ public class Core: MonoBehaviour
         }
     }
     #endregion
-
     #region Logical propetries
     private Stencil _currentStencil
     {
@@ -62,17 +70,17 @@ public class Core: MonoBehaviour
             _removeStencilButton.GetComponent<Button>().interactable = (value != null);
         }
     }
-    private Stencil _currentStencilCandidate;
     private Stencil _currentStencilContaier;
-    //private Vector3 _previousControlPosition;
-    private Vector3[] _controlsPosition;
-    private Vector3[] _initialControlsPosition;
-    private Vector3 _initialPosition;
-    private Vector3 _initialScale;
-    private float _initialAngle;
+    private Vector3 _dragPosition;
+    private Vector3 _previousDragPosition;
+    private Vector3 _controlsPosition;
+    private float mZCoord;
     protected static List<Stencil> Stencils;
+    public static Core Main;
+    public static bool isDrag;
+    private bool hold;
+    private bool isTestNotInProgress;
     #endregion
-
     #region Constants
     private const float _templateTransparency = 0.2f;
     private const float _brokenSequenceAngle = float.PositiveInfinity;
@@ -90,213 +98,80 @@ public class Core: MonoBehaviour
             return Vector3.positiveInfinity;
         }
     }
-    private int _stencilsMask = 1 << 9;
+    private int _coordinateGridMask = 1 << 8;
+    private int _controlCenterMask = 1 << 11;
     #endregion
-
     #region Unity events
     private void Start()
     {
-        Input.multiTouchEnabled = true;
-        _initialControlsPosition = new Vector3[2];
-        _controlsPosition = new Vector3[2];
+        Main = this;
+        hold = false;
+        isDrag = false;
         Stencils = new List<Stencil>();
         GenetateLevel();
-        BreakControlSequence();
     }
     void Update()
     {
-        //Saving input data
-        if (Input.touchCount >= 1)
-        {
-            _controlsPosition[0] = Input.touches[0].position;
-            if (Input.touchCount >= 2)
-                _controlsPosition[1] = Input.touches[1].position;
-        }
-        else
-        {
-            _controlsPosition[0] = Input.mousePosition;
-        }
-        //Logging
-        Logger.UpdateContent(UILogDataType.Controls, "Controls position 0 " + _controlsPosition[0] + " Controls position 1 " + _controlsPosition[1] + " touch cont :" + Input.touchCount);
         if(_currentStencil != null)
         {
-            Logger.UpdateContent(UILogDataType.Logic, "Current stencil position - " + _currentStencil.obj.transform.position +
-                " scale - " + _currentStencil.obj.transform.localScale +
-                " rotation - " + _currentStencil.obj.transform.rotation.eulerAngles,true);
+            //Logger.UpdateContent(UILogDataType.Logic, "Stencil postion: " + _currentStencil.obj.transform.position
+            //    + ", rotation: " + _currentStencil.obj.transform.rotation.eulerAngles
+            //    + ", scale: " + _currentStencil.obj.transform.localScale);
+            _currentStencil.obj.transform.rotation = Quaternion.Euler(0f, 0f, ControlElement.angle);
+            _currentStencil.obj.transform.localScale = Vector3.one * ControlElement.scale;
         }
-        if (EventSystem.current.IsPointerOverGameObject())
-        {
-            BreakControlSequence();
-            return;
-        }
-        //Mobile scale and rotation start or processing
-        if (Input.touchCount >= 2 && _currentStencil != null)
-        {
-            if (Input.touches[0].phase == TouchPhase.Began || Input.touches[1].phase == TouchPhase.Began)
-            {
-                ScaleAndRotationSequenceStart();
-                return;
-            }
-            else
-            {
-                ProcessScaleAndRotation();
-                return;
-            }
-        }
-
-        //PC drag start
-        if (Input.GetMouseButtonDown(0) && _currentStencil != null && !Input.GetKey("s"))
-        {
-            if (ProcessPick())
-                return;
-            else
-            {
-                DragSequenceStart();
-                return;
-            }
-        }
-        //Mobile drag start
+        isDrag = false;
+        RaycastHit _hit;
         if (Input.touchCount == 1)
-            if (Input.touches[0].phase == TouchPhase.Began && _currentStencil != null)
-            {
-                if (ProcessPick())
-                    return;
-                else
-                {
-                    DragSequenceStart();
-                    return;
-                }
-            }
-        //Mobile or PC drag processing
-        if ((Input.touchCount == 1 || Input.GetMouseButton(0)) && _currentStencil != null && !Input.GetKey("s"))
+            _controlsPosition = Input.touches[0].position;
+        else
+            _controlsPosition = Input.mousePosition;
+        if (!EventSystem.current.IsPointerOverGameObject() && !ControlElement.isRotating && (Input.GetMouseButtonDown(0) || (Input.touchCount == 1 ? Input.touches[0].phase == TouchPhase.Began : false)))
         {
-            if (ProcessPick())
-                return;
+            //Logger.UpdateContent(UILogDataType.Controls, "Start drag");
+            if (!Physics.Raycast(Camera.main.ScreenPointToRay(_controlsPosition), out _hit,100f,_controlCenterMask))
+                Debug.Log("Stencil drag unavailable cause of empty raycast hit");
             else
             {
-                ProcessDrag();
-                return;
+                _previousDragPosition = _hit.point;
+                //Debug.Log("Init drag pos " + _previousDragPosition);
+                isDrag = true;
+                hold = true;
             }
         }
-        //Mobile or PC pick processing
-        if ((Input.touchCount == 1 || Input.GetMouseButton(0)) && _currentStencil == null)
+        if (_currentStencil != null && !ControlElement.isRotating && hold && (Input.GetMouseButton(0) || (Input.touchCount == 1 ? Input.touches[0].phase != TouchPhase.Began : false)))
         {
-            if (ProcessPick())
-                return;
+            //Logger.UpdateContent(UILogDataType.Controls, "Drag");
+            isDrag = true;
+            if (!Physics.Raycast(Camera.main.ScreenPointToRay(_controlsPosition), out _hit, _coordinateGridMask))
+                Debug.LogError("Stencil drag unavailable cause of empty raycast hit");
+            else
+            {
+                _dragPosition = _hit.point;
+                //Debug.Log("Current drag data pos: " + _dragPosition + " prev pos: " + _previousDragPosition + " delta: " + (_previousDragPosition - _dragPosition).ToString());
+            }
+            Vector3 _newPos = _currentStencil.obj.transform.position + (_dragPosition - _previousDragPosition);
+            _newPos.z = 0f;
+            if (!(_newPos.y < _yBottomBoarder || _newPos.y > _yTopBoarder || Mathf.Abs(_newPos.x) > _xBoarder))
+                _currentStencil.obj.transform.position += (_dragPosition - _previousDragPosition);
+            _previousDragPosition = _dragPosition;
+            //_currentStencil.obj.transform.position = GetMouseAsWorldPoint() + mOffset;
         }
-        //Saving PC scale and rotation fake finger 
-        if (Input.GetKeyDown("s"))
+        if (_currentStencil != null && (Input.GetMouseButtonUp(0) || (Input.touchCount == 1 ? Input.touches[0].phase == TouchPhase.Ended : false)))
         {
-            _controlsPosition[1] = _controlsPosition[0];
-            Logger.UpdateContent(UILogDataType.Controls, "Controls position 0 " + _controlsPosition[0] + " Controls position 1 " + _controlsPosition[1]);
-            return;
+            //Logger.UpdateContent(UILogDataType.Controls, "Finish drag");
+            hold = false;
         }
-        //PC scale and rotation processing
-        if (Input.GetKey("s")&& _currentStencil != null)
-            if (Input.GetMouseButtonDown(0))
-            {
-                ScaleAndRotationSequenceStart();
-                //Debug.Log("Saving initial position. Controls position 0 " + _controlsPosition[0] + " Controls position 1 " + _controlsPosition[1]);
-                Logger.UpdateContent(UILogDataType.Controls, "Controls position 0 " + _controlsPosition[0] + " Controls position 1 " + _controlsPosition[1]);
-                Logger.AddContent(UILogDataType.Controls, " init position 0 " + _initialControlsPosition[0] + " init position 1 " + _initialControlsPosition[1]);
-                return;
-            }
-            else
-            if (Input.GetMouseButton(0))
-            {
-                Logger.UpdateContent(UILogDataType.Controls, "Controls position 0 " + _controlsPosition[0] + " Controls position 1 " + _controlsPosition[1]);
-                Logger.AddContent(UILogDataType.Controls, " init position 0 " + _initialControlsPosition[0] + " init position 1 " + _initialControlsPosition[1]);
-                ProcessScaleAndRotation();
-                return;
-            }
-            else
-                return;
-        BreakControlSequence();
     }
     #endregion
-
     #region Internal logic
-    private bool ProcessPick()
-    {
-        RaycastHit _hit;
-        if (Physics.Raycast(_camera.ScreenPointToRay(_controlsPosition[0]), out _hit, 1000f, _stencilsMask))
-        {
-            _currentStencilCandidate = Stencils.Find(x => x.obj == _hit.transform.gameObject);
-            //Debug.Log("Casted " + _hit.transform.name);
-            if (_currentStencilCandidate.obj == _hit.transform.gameObject)
-                return false;
-            else
-            {
-                BreakControlSequence();
-                return true;
-            }
-        }
-        else return false;
-    }
-    private void DragSequenceStart()
-    {
-        _initialPosition = _currentStencil.obj.transform.position;
-        _initialControlsPosition[0] = _controlsPosition[0];
-    }
-    private void ProcessDrag()
-    {
-        _currentStencil.obj.transform.position = _initialPosition +
-            (Vector3.right * ((_controlsPosition[0].x - _initialControlsPosition[0].x) / Screen.width) +
-            Vector3.up * ((_controlsPosition[0].y - _initialControlsPosition[0].y) / Screen.height))*_dragMultiplier;
-    }
-    private void ScaleAndRotationSequenceStart()
-    {
-        _initialAngle = _currentStencil.obj.transform.rotation.eulerAngles.z;
-        _initialScale = _currentStencil.obj.transform.localScale;
-        _initialControlsPosition[0] = _controlsPosition[0];
-        _initialControlsPosition[1] = _controlsPosition[1];
-    }
-    private void ProcessScaleAndRotation()
-    {
-        if (_initialControlsPosition[0] == _initialControlsPosition[1])
-        {
-            Debug.LogError("Cant scale with same initial controls positions");
-            return;
-        }
-        if (_currentStencil == null)
-        {
-            Debug.Log("Nothing to scale and rotate");
-            return;
-        }
-        //Debug.Log("Controls position 0 " + _controlsPosition[0] + " Controls position 1 " + _controlsPosition[1] + " init position 0 " + _initialControlsPosition[0] + " init position 1 " + _initialControlsPosition[1]);
-        //Debug.Log("Scaling " +
-        //    (Vector3.Distance(_controlsPosition[0], _controlsPosition[1]) /
-        //    Vector3.Distance(_initialControlsPosition[0], _initialControlsPosition[1])));
-        _currentStencil.obj.transform.localScale =
-            _initialScale *
-            (Vector3.Distance(_controlsPosition[0], _controlsPosition[1]) /
-            Vector3.Distance(_initialControlsPosition[0], _initialControlsPosition[1]));
-        //Debug.Log("Angle: " +
-        //    (Vector3.SignedAngle(_initialControlsPosition[0], _initialControlsPosition[1],Vector3.forward) -
-        //    Vector3.SignedAngle(_controlsPosition[0], _controlsPosition[1], Vector3.forward)));
-        _currentStencil.obj.transform.rotation = Quaternion.Euler(0f, 0f, _initialAngle + 
-            Vector3.SignedAngle(_initialControlsPosition[0], _initialControlsPosition[1], Vector3.forward) -
-            Vector3.SignedAngle(_controlsPosition[0], _controlsPosition[1], Vector3.forward));
-    }
-    private void BreakControlSequence()
-    {
-        //_previousControlPosition = _controlsPosition[0];
-        _initialControlsPosition[0] = _controlsPosition[0];
-        _initialControlsPosition[1] = _controlsPosition[1];
-        _controlsPosition[1] = _controlsPosition[0];
-        _currentStencil = _currentStencilCandidate;
-        _initialScale = _brokenSequenceScale;
-        _initialAngle = _brokenSequenceAngle;
-        _initialPosition = _brokenSequencePosition;
-        Logger.AddContent(UILogDataType.Controls, "Sequence broken");
-    }
     private void MakeTemplateGrey(GameObject obj)
     {
-        if (obj.GetComponent<SpriteRenderer>() != null)
-            obj.GetComponent<SpriteRenderer>().color = new Color(
-                obj.GetComponent<SpriteRenderer>().color.r,
-                obj.GetComponent<SpriteRenderer>().color.g,
-                obj.GetComponent<SpriteRenderer>().color.b,
+        if (obj.GetComponent<MeshRenderer>() != null)
+            obj.GetComponent<MeshRenderer>().material.color = new Color(
+                obj.GetComponent<MeshRenderer>().material.color.r,
+                obj.GetComponent<MeshRenderer>().material.color.g,
+                obj.GetComponent<MeshRenderer>().material.color.b,
                 _templateTransparency);
         for(int i = 0; i<obj.transform.childCount; i++)
         {
@@ -305,19 +180,24 @@ public class Core: MonoBehaviour
     }
     private void UserFinishedLevel()
     {
-        _points = Mathf.CeilToInt(Estimate()) * 100;
+        _points = Mathf.CeilToInt(Estimate() * 100);
         GenetateLevel();
+    }
+    private void ClearAllStencils()
+    {
+        _currentStencil = null;
+        foreach (Stencil _s in Stencils)
+        {
+            _s.Remove();
+        }
+        Stencils = new List<Stencil>();
     }
     private void GenetateLevel()
     {
         Transform _t = _template.transform.parent;
         Destroy(_template);
         Instantiate(templates[UnityEngine.Random.Range(0, templates.Count)], _t);
-        foreach(Stencil _s in Stencils)
-        {
-            _s.Remove();
-        }
-        Stencils = new List<Stencil>();
+        ClearAllStencils();
         MakeTemplateGrey(_t.gameObject);
     }
     private float Estimate()
@@ -325,8 +205,14 @@ public class Core: MonoBehaviour
         List<GameObject> _alreadyMatched = new List<GameObject>();
         GameObject _currentMathchedObj;
         List<float> _estimations = new List<float>();
+        Debug.Log("Comparing " + _template.name + " with " + _stencilContainer.name);
         for(int i = 0; i< _template.transform.childCount; i++)
         {
+            if (_template.transform.GetChild(i).gameObject.layer == 8)
+            {
+                Debug.Log(_template.transform.GetChild(i).name + "skipped");
+                continue;
+            }
             _currentMathchedObj = MatchObject(_template.transform.GetChild(i).gameObject,_alreadyMatched);
             if (_currentMathchedObj == null)
                 _estimations.Add(0f);
@@ -339,39 +225,64 @@ public class Core: MonoBehaviour
         float _result = 0f;
         foreach (float _f in _estimations)
             _result += _f;
+        Debug.Log("Total estimation result: " + (_result / _estimations.Count));
         return _result/_estimations.Count;
     }
     private GameObject MatchObject(GameObject Target, List<GameObject> ExceptedObjects)
     {
+        Debug.Log("Matching " + Target.name);
         float minMagnitude = float.PositiveInfinity;
         GameObject result = null;
         for (int i = 0; i < _stencilContainer.transform.childCount; i++)
-            if (ExceptedObjects.Find(x => x == _stencilContainer.transform.GetChild(i).gameObject) == null)
-                if (Vector3.Magnitude(Target.transform.position - _stencilContainer.transform.GetChild(i).transform.position) < minMagnitude)
+        {
+            Debug.Log("Checking " + _stencilContainer.transform.GetChild(i).name);
+            if (ExceptedObjects.Find(x => x == _stencilContainer.transform.GetChild(i).gameObject) == null 
+                && _stencilContainer.transform.GetChild(i).gameObject.layer != 8)
+            {
+                float _currMag = Vector3.Magnitude(Target.transform.position - _stencilContainer.transform.GetChild(i).transform.position);
+                Debug.Log("Difference: " + (Target.transform.position - _stencilContainer.transform.GetChild(i).transform.position) +
+                    ", magnitude: " + _currMag +
+                    ", minMagnitude " + minMagnitude);
+                if (_currMag < minMagnitude)
+                {
                     result = _stencilContainer.transform.GetChild(i).gameObject;
+                    minMagnitude = _currMag;
+                }
+            }
+            else
+                Debug.Log(_stencilContainer.transform.GetChild(i).name + " excepted before");
+        }
         Debug.Log((result==null ? Target.name + " not matched" : Target.name + " matched with " + result.name));
         return result;
     }
     private float EstimateObjects(Transform Template, Transform Stencil)
     {
-        float _distanceEstimation = ComputeEstimation(Vector3.Magnitude(Template.position - Stencil.position),_positionMaxAccaptableShift);
-        float _scaleEstimation = ComputeEstimation(Vector3.Magnitude(Template.localScale - Stencil.localScale), _scaleMaxAcceptableShift);
-        float _rotationEstimation = ComputeEstimation(Mathf.Abs(Template.rotation.eulerAngles.z - Stencil.rotation.eulerAngles.z), _angleMaxAccaptableShift);
+        float _distanceEstimation = ComputeEstimation(Vector3.Magnitude(Template.position - Stencil.position), _positionGreenZone, _positionYellowZone);
+        float _scaleEstimation = ComputeEstimation(Vector3.Magnitude(Template.localScale - Stencil.localScale), _scaleGreenZone, _scaleYellowZone);
+        float _angleDiff = (Template.rotation.eulerAngles.z - Stencil.rotation.eulerAngles.z);
+        if (_angleDiff < 0)
+            _angleDiff += 360;
+        float _rotationEstimation = ComputeEstimation(_angleDiff, _angleGreenZone, _angleYellowZone);
+        Debug.Log(Stencil.name + " estimation: " + Environment.NewLine +
+            "Template position: " + Template.position + " stencil position: " + Stencil.position + ", delta: " + (Template.position - Stencil.position) + "(" + (Template.position - Stencil.position).magnitude+ ")" + ", max delta: " + _positionYellowZone + ", effort:" + _distanceEstimation + Environment.NewLine +
+            "Template scale: " + Template.localScale + " stencil scale: " + Stencil.localScale + ", delta: " + (Template.localScale - Stencil.localScale) + "(" + (Template.localScale - Stencil.localScale).magnitude + ")" + ", max delta: " + _scaleYellowZone + ", effort:" + _scaleEstimation + Environment.NewLine +
+            "Template rotation: " + Template.rotation.eulerAngles.z + " stencil rotation: " + Stencil.rotation.eulerAngles.z + ", delta: " + _angleDiff + ", max delta: " + _angleYellowZone + ", effort:" + _rotationEstimation);
         return (_distanceEstimation + _scaleEstimation + _rotationEstimation)/3f;
     }
-    private float ComputeEstimation(float Value, float MaxAcceptableValue)
+    private float ComputeEstimation(float Value, float GreenZone, float YellowZone)
     {
-        if (Value >= MaxAcceptableValue)
+        if (Value >= YellowZone)
             return 0f;
         if (Value < 0)
         {
             Debug.LogError("Invalid value " + Value + " It can't be below zero. Used " + Mathf.Abs(Value) + " instead");
             Value = Mathf.Abs(Value);
         }
-        return Value / MaxAcceptableValue;
+        if (Value <= GreenZone)
+            return 1f;
+        return 1f - Value / YellowZone;
     }
     #endregion
-
     #region UI Logic
     public void ToggleValueChanged(bool _isOn)
     {
@@ -379,19 +290,42 @@ public class Core: MonoBehaviour
     }
     public void NewStencil(int _stenciTypelNum)
     {
-        Stencils.Add(new Stencil((StencilType)_stenciTypelNum,this));
-        _currentStencilCandidate = Stencils[Stencils.Count - 1];
+        try
+        {
+
+            if (_currentStencil != null)
+                Destroy(_currentStencil.obj.transform.GetChild(0).gameObject);
+            Stencils.Add(new Stencil((StencilType)_stenciTypelNum, this));
+            _currentStencil = Stencils[Stencils.Count - 1];
+            Instantiate(controlFrame, _currentStencil.obj.transform);
+        }
+        catch(Exception e)
+        {
+            Logger.AddContent(UILogDataType.GameState, "Stencil add error " + e.Message + " trace: " + e.StackTrace);
+        }
     }
     public void RemoveStencil()
     {
         _currentStencil.Remove();
         Stencils.Remove(_currentStencil);
-        _currentStencilCandidate = null;
+        //_currentStencilCandidate = null;
         _currentStencil = null;
+    }
+    public void CopyStencil()
+    {
+        NewStencil((int)_currentStencil.type);
+    }
+    public void RefreshLevel()
+    {
+        ClearAllStencils();
     }
     public void Done()
     {
         UserFinishedLevel();
+    }
+    public void ExtimationTest()
+    {
+        Estimate();
     }
     #endregion
 
@@ -408,9 +342,11 @@ public class Core: MonoBehaviour
         {
             type = Type;
             obj = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            obj.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
             obj.name = Type.ToString() + "_" + Core.Stencils.Count.ToString();
             obj.transform.SetParent(GameData._stencilContainer.transform);
-            obj.tag = "stencil";
+            obj.transform.position = Vector3.zero;
+            obj.tag = type.ToString();
             _objRenderer.material = GameData.stencilMaterial;
             _objRenderer.material.mainTexture = GameData.stencilSprites[(int)type].texture;
             obj.layer = 9;
@@ -421,4 +357,4 @@ public class Core: MonoBehaviour
         }
     }
 }
-public enum StencilType {Heart, Plus, Round }
+public enum StencilType {Heart, Plus, Round}
