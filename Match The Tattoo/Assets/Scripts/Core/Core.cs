@@ -10,11 +10,8 @@ using UnityEngine.UI;
 
 public class Core: MonoBehaviour
 {
-    public GameObject camera;
     public GameObject controlFrame;
     public List<StencilInput> stencilSprites;
-    public List<GameObject> templates;
-    public Material stencilMaterial;
     public float _positionGreenZone;
     public float _positionYellowZone;
     public float _scaleGreenZone;
@@ -79,6 +76,13 @@ public class Core: MonoBehaviour
             return camera.transform.GetChild(3).GetChild(1);
         }
     }
+    public GameObject camera
+    {
+        get
+        {
+            return Camera.main.gameObject;
+        }
+    }
     #endregion
     #region Logical propetries
     private Stencil _currentStencil
@@ -129,7 +133,10 @@ public class Core: MonoBehaviour
         hold = false;
         isDrag = false;
         Stencils = new List<Stencil>();
-        GenetateLevel();
+        //GenetateLevel();
+        ShowTemplateAvatar();
+        MakeTemplateGrey(_template);
+        Engine.Events.CoreReadyToChangeState(GameSessionState.InProgress);
     }
     void Update()
     {
@@ -195,11 +202,6 @@ public class Core: MonoBehaviour
             MakeTemplateGrey(obj.transform.GetChild(i).gameObject);
         }
     }
-    private void UserFinishedLevel()
-    {
-        //Mathf.CeilToInt(Estimate() * 100);
-        GenetateLevel();
-    }
     private void ClearAllStencils()
     {
         foreach (Stencil _s in Stencils)
@@ -209,17 +211,12 @@ public class Core: MonoBehaviour
         Stencils = new List<Stencil>();
         _currentStencil = null;
     }
-    private void GenetateLevel()
+    private void ShowTemplateAvatar()
     {
-        Transform _t = _template.transform.parent;
-        Destroy(_template);
-        GameObject _g = Instantiate(templates[UnityEngine.Random.Range(0, templates.Count)], _t);
-        ClearAllStencils();
         Destroy(SmallTemplate.GetChild(0).gameObject);
-        GameObject _sg = Instantiate(_g, SmallTemplate);
+        GameObject _sg = Instantiate(_template, SmallTemplate);
         _sg.transform.localScale = Vector3.one;
-        _sg.transform.localPosition = Vector3.forward * (- 0.000003f);
-        MakeTemplateGrey(_t.gameObject);
+        _sg.transform.localPosition = Vector3.forward * (-0.000003f);
     }
     private float Estimate()
     {
@@ -278,6 +275,8 @@ public class Core: MonoBehaviour
     }
     private float EstimateObjects(Transform Template, Transform Stencil)
     {
+        if (Template.tag != Stencil.tag)
+            return 0f;        
         float _distanceEstimation = ComputeEstimation(Vector3.Magnitude(Template.position - Stencil.position), _positionGreenZone, _positionYellowZone);
         float _scaleEstimation = ComputeEstimation(Vector3.Magnitude(Template.localScale - Stencil.localScale), _scaleGreenZone, _scaleYellowZone);
         float _angleDiff = (Template.rotation.eulerAngles.z - Stencil.rotation.eulerAngles.z);
@@ -331,6 +330,16 @@ public class Core: MonoBehaviour
         if (_currentStencil != null)
             _currentStencil.obj.GetComponent<MeshRenderer>().material.color = _c;
     }
+    private void UserFinishedDrawing()
+    {
+        //Mathf.CeilToInt(Estimate() * 100);
+        Engine.Events.CoreReadyToChangeState(GameSessionState.Won);
+        AdMobController.ShowRegularAd();
+    }
+    private void ReadyToSwitchLevel()
+    {
+        Engine.Events.CoreReadyToSwitchLevel();
+    }
     #endregion
     #region UI Logic
     public void ToggleValueChanged(bool _isOn)
@@ -368,9 +377,13 @@ public class Core: MonoBehaviour
     {
         ClearAllStencils();
     }
-    public void Done()
+    public void UIUserFinishedDrawing()
     {
-        UserFinishedLevel();
+        UserFinishedDrawing();
+    }
+    public void UIReadyToSwitchLevel()
+    {
+        ReadyToSwitchLevel();
     }
     public void ExtimationTest()
     {
@@ -453,4 +466,4 @@ public class Core: MonoBehaviour
     }
     #endregion
 }
-public enum StencilType { emotions_and_faces, objects, food_and_drinks , animals_and_nature, people_and_gestures, symbols, activity_and_sport, transport,flags,}
+public enum StencilType { emotions_and_faces, objects, food_and_drinks , animals_and_nature, people_and_gestures, symbols, activity_and_sport, transport,flags}

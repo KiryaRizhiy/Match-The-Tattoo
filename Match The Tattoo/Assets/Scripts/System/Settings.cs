@@ -34,10 +34,11 @@ public static class Settings
     }
     public static string adMobApplicationId = "ca-app-pub-6138084763477006~9956003923";
     public static bool testMode = true;
+    public static AutogenerationTypes autogenerationType = AutogenerationTypes.cycle; 
     public const int LevelCurrencyReward = 4;
     public const int LevelExtraRewardMultiplyer = 3;
     public const string privacyPolicyLink = "https://justforward.co/privacy-policy/";
-    public const string ProjectName = "Match The Tattoo";
+    public const string ProjectName = "Match-The-Tattoo";
     public const char LocalsSeparator = ';';
     public static string savePath 
     { get { return Application.persistentDataPath + "/"+ ProjectName +"Saves/"; } }
@@ -45,3 +46,4 @@ public static class Settings
     { get { return savePath + "Save.json"; } }
 }
 public enum PlacementType { video, rewardedVideo, banner, interstitial }
+public enum AutogenerationTypes { cycle, generation}
