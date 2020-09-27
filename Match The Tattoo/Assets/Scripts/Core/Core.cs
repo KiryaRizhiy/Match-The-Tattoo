@@ -23,6 +23,8 @@ public class Core: MonoBehaviour
     public float _xBoarder;
     public float _yTopBoarder;
     public float _yBottomBoarder;
+    public float _firstStarThreshold;
+    public float _secondStarThreshold;
 
     #region Linking acceptors
     protected GameObject _template
@@ -76,11 +78,18 @@ public class Core: MonoBehaviour
             return camera.transform.GetChild(3).GetChild(1);
         }
     }
-    public GameObject camera
+    protected GameObject camera
     {
         get
         {
             return Camera.main.gameObject;
+        }
+    }
+    protected Transform yellowStarsPannel
+    {
+        get
+        {
+            return transform.GetChild(2).GetChild(1).GetChild(1).GetChild(1);
         }
     }
     #endregion
@@ -193,10 +202,23 @@ public class Core: MonoBehaviour
     }
     #endregion
     #region Internal logic
+    private void MakeTemplateBlack(GameObject obj)
+    {
+        if (obj.GetComponent<MeshRenderer>() != null)
+        {
+            obj.GetComponent<MeshRenderer>().material.color = new Color(0f, 0f, 0f);
+        }
+        for (int i = 0; i < obj.transform.childCount; i++)
+        {
+            MakeTemplateGrey(obj.transform.GetChild(i).gameObject);
+        }
+    }
     private void MakeTemplateGrey(GameObject obj)
     {
         if (obj.GetComponent<MeshRenderer>() != null)
-            obj.GetComponent<MeshRenderer>().material.color = new Color(1f,1f,1f,_templateTransparency);
+        {
+            obj.GetComponent<MeshRenderer>().material.color = new Color(0f, 0f, 0f, _templateTransparency);
+        }
         for(int i = 0; i<obj.transform.childCount; i++)
         {
             MakeTemplateGrey(obj.transform.GetChild(i).gameObject);
@@ -217,6 +239,7 @@ public class Core: MonoBehaviour
         GameObject _sg = Instantiate(_template, SmallTemplate);
         _sg.transform.localScale = Vector3.one;
         _sg.transform.localPosition = Vector3.forward * (-0.000003f);
+        MakeTemplateBlack(_sg);
     }
     private float Estimate()
     {
@@ -276,7 +299,35 @@ public class Core: MonoBehaviour
     private float EstimateObjects(Transform Template, Transform Stencil)
     {
         if (Template.tag != Stencil.tag)
-            return 0f;        
+        {
+            Debug.Log(Stencil.name + " estimation is 0 becaause of different tags." + Environment.NewLine +
+                Stencil.name + " tag is: " + Stencil.tag + Environment.NewLine +
+                Template.name + " tag is: " + Template.tag);
+            return 0f;
+        }
+        else
+            Debug.Log(Stencil.name + "Tag check passed. " + Environment.NewLine +
+                    Stencil.name + " tag is: " + Stencil.tag + Environment.NewLine +
+                    Template.name + " tag is: " + Template.tag);
+        if (
+            !(
+                (Template.GetComponent<MeshRenderer>().material.color.r == Stencil.GetComponent<MeshRenderer>().material.color.r)
+                &&
+                (Template.GetComponent<MeshRenderer>().material.color.g == Stencil.GetComponent<MeshRenderer>().material.color.g)
+                &&
+                (Template.GetComponent<MeshRenderer>().material.color.b == Stencil.GetComponent<MeshRenderer>().material.color.b)
+             )
+            )
+        {
+            Debug.Log(Stencil.name + " estimation is 0 becaause of different colors." + Environment.NewLine +
+                Stencil.name + " color is: " + Stencil.GetComponent<MeshRenderer>().material.color + Environment.NewLine +
+                Template.name + " color is: " + Template.GetComponent<MeshRenderer>().material.color);
+            return 0f;
+        }
+        else
+            Debug.Log(Stencil.name +  " color check passed." + Environment.NewLine +
+                Stencil.name + " color is: " + Stencil.GetComponent<MeshRenderer>().material.color + Environment.NewLine +
+                Template.name + " color is: " + Template.GetComponent<MeshRenderer>().material.color);
         float _distanceEstimation = ComputeEstimation(Vector3.Magnitude(Template.position - Stencil.position), _positionGreenZone, _positionYellowZone);
         float _scaleEstimation = ComputeEstimation(Vector3.Magnitude(Template.localScale - Stencil.localScale), _scaleGreenZone, _scaleYellowZone);
         float _angleDiff = (Template.rotation.eulerAngles.z - Stencil.rotation.eulerAngles.z);
@@ -304,7 +355,10 @@ public class Core: MonoBehaviour
     }
     private void CopyStencil()
     {
+        Destroy(_currentStencil.obj.transform.GetChild(0).gameObject);
         _currentStencil = new Stencil(_currentStencil);
+        Stencils.Add(_currentStencil);
+        Instantiate(controlFrame, _currentStencil.obj.transform);
     }
     private void SwitchStencilTypeScroll()
     {
@@ -332,7 +386,30 @@ public class Core: MonoBehaviour
     }
     private void UserFinishedDrawing()
     {
-        //Mathf.CeilToInt(Estimate() * 100);
+        float _e = Estimate();//Mathf.CeilToInt(Estimate() * 100);
+
+        if (_e > 0)
+        {
+            if (_e <= _firstStarThreshold / 100f)
+            {
+                yellowStarsPannel.GetChild(0).gameObject.SetActive(true);
+                yellowStarsPannel.GetChild(1).gameObject.SetActive(false);
+                yellowStarsPannel.GetChild(2).gameObject.SetActive(false);
+            }
+            else
+            if (_e <= _secondStarThreshold / 100f)
+            {
+                yellowStarsPannel.GetChild(0).gameObject.SetActive(true);
+                yellowStarsPannel.GetChild(1).gameObject.SetActive(true);
+                yellowStarsPannel.GetChild(2).gameObject.SetActive(false);
+            }
+            else
+            {
+                yellowStarsPannel.GetChild(0).gameObject.SetActive(true);
+                yellowStarsPannel.GetChild(1).gameObject.SetActive(true);
+                yellowStarsPannel.GetChild(2).gameObject.SetActive(true);
+            }
+        }
         Engine.Events.CoreReadyToChangeState(GameSessionState.Won);
         AdMobController.ShowRegularAd();
     }
@@ -443,6 +520,7 @@ public class Core: MonoBehaviour
             obj.transform.position = Vector3.zero;
             obj.tag = type.ToString();
             _objRenderer.material = _si._sm;
+            obj.GetComponent<MeshRenderer>().material.color = Color.black;
             obj.layer = 9;
         }
         public Stencil(Stencil stencilToCopy)
