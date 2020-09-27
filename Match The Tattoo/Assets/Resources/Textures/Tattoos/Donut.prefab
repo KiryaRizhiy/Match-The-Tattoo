@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 290036378790572664}
   m_Layer: 9
   m_Name: Quad
-  m_TagString: Untagged
+  m_TagString: food_and_drinks
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -105,7 +105,7 @@ GameObject:
   - component: {fileID: 290036379173114348}
   m_Layer: 9
   m_Name: Donut
-  m_TagString: Untagged
+  m_TagString: food_and_drinks
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

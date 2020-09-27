@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 4074892654231460162}
   m_Layer: 9
   m_Name: Quad
-  m_TagString: Untagged
+  m_TagString: emotions_and_faces
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -105,7 +105,7 @@ GameObject:
   - component: {fileID: 4074892655457062987}
   m_Layer: 9
   m_Name: Facepalm
-  m_TagString: Untagged
+  m_TagString: emotions_and_faces
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

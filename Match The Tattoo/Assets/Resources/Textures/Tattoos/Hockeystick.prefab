@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 274420702699729954}
   m_Layer: 9
   m_Name: Quad
-  m_TagString: Untagged
+  m_TagString: activity_and_sport
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

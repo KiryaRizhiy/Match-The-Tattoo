@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 828173329189557523}
   m_Layer: 9
   m_Name: Quad
-  m_TagString: Untagged
+  m_TagString: objects
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -105,7 +105,7 @@ GameObject:
   - component: {fileID: 828173329973784612}
   m_Layer: 9
   m_Name: Granprix
-  m_TagString: Untagged
+  m_TagString: objects
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

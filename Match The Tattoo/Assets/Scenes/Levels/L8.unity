@@ -331,7 +331,7 @@ PrefabInstance:
     - target: {fileID: 3537005879313315541, guid: 41d0ce36867a749439beec83d7d8f80c,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -1.9450016
+      value: -1.9450035
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 41d0ce36867a749439beec83d7d8f80c, type: 3}
@@ -486,6 +486,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1616134186}
     m_Modifications:
+    - target: {fileID: 5330164421618215388, guid: 17134d92349ac4c4ab1783196df3835f,
+        type: 3}
+      propertyPath: m_TagString
+      value: food_and_drinks
+      objectReference: {fileID: 0}
     - target: {fileID: 5330164422609065124, guid: 17134d92349ac4c4ab1783196df3835f,
         type: 3}
       propertyPath: m_Name

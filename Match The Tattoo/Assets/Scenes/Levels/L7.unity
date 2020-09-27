@@ -128,6 +128,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1616134186}
     m_Modifications:
+    - target: {fileID: 1589252946939401565, guid: bde7e2514b6f207478b9dc110d985bcd,
+        type: 3}
+      propertyPath: m_TagString
+      value: transport
+      objectReference: {fileID: 0}
     - target: {fileID: 1589252947862169987, guid: bde7e2514b6f207478b9dc110d985bcd,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -420,7 +425,7 @@ PrefabInstance:
     - target: {fileID: 3537005879313315541, guid: 41d0ce36867a749439beec83d7d8f80c,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -1.9450016
+      value: -1.9450035
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 41d0ce36867a749439beec83d7d8f80c, type: 3}

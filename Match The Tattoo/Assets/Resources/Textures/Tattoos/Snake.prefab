@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 1071433361551138719}
   m_Layer: 9
   m_Name: Quad
-  m_TagString: Untagged
+  m_TagString: animals_and_nature
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
