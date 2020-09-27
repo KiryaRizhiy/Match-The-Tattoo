@@ -37,7 +37,7 @@ public class AdMobController : MonoBehaviour
     {
         try
         {
-            if (interstitial.IsLoaded())
+            if (interstitial.IsLoaded()&& !Application.isEditor)
                 interstitial.Show();
             else
                 Engine.Events.AdNotReady(PlacementType.interstitial);
@@ -54,7 +54,7 @@ public class AdMobController : MonoBehaviour
     {
         try
         {
-            if (rewarded.IsLoaded())
+            if (rewarded.IsLoaded() && !Application.isEditor)
                 rewarded.Show();
             else
                 Engine.Events.AdNotReady(PlacementType.rewardedVideo);

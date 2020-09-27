@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 531572006906880621}
   m_Layer: 9
   m_Name: Banana
-  m_TagString: Untagged
+  m_TagString: food_and_drinks
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 531572007764730878}
   m_Layer: 9
   m_Name: Quad
-  m_TagString: Untagged
+  m_TagString: food_and_drinks
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

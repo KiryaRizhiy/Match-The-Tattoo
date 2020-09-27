@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7917530251984448238}
   m_Layer: 9
   m_Name: Ball
-  m_TagString: Untagged
+  m_TagString: activity_and_sport
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 7917530252807437422}
   m_Layer: 9
   m_Name: Quad
-  m_TagString: Untagged
+  m_TagString: activity_and_sport
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
