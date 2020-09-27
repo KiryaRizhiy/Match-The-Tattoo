@@ -544,17 +544,17 @@ PrefabInstance:
     - target: {fileID: 2535284970470754850, guid: 8f1da67277b7e9a4f9c04d9fd631ed6a,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2535284970470754850, guid: 8f1da67277b7e9a4f9c04d9fd631ed6a,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2535284970470754850, guid: 8f1da67277b7e9a4f9c04d9fd631ed6a,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2535284970470754851, guid: 8f1da67277b7e9a4f9c04d9fd631ed6a,
         type: 3}
@@ -565,6 +565,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TagString
       value: emotions_and_faces
+      objectReference: {fileID: 0}
+    - target: {fileID: 2535284972190958596, guid: 8f1da67277b7e9a4f9c04d9fd631ed6a,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2535284972190958596, guid: 8f1da67277b7e9a4f9c04d9fd631ed6a,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2535284972190958596, guid: 8f1da67277b7e9a4f9c04d9fd631ed6a,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8f1da67277b7e9a4f9c04d9fd631ed6a, type: 3}

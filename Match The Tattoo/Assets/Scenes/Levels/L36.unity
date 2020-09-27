@@ -400,17 +400,17 @@ PrefabInstance:
     - target: {fileID: 5224068110275587194, guid: f729f90bbd6597a4e89535f6b3477bc3,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.75
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5224068110275587194, guid: f729f90bbd6597a4e89535f6b3477bc3,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.75
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5224068110275587194, guid: f729f90bbd6597a4e89535f6b3477bc3,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.75
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5224068110275587197, guid: f729f90bbd6597a4e89535f6b3477bc3,
         type: 3}
@@ -446,6 +446,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.y
       value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5224068110877892234, guid: f729f90bbd6597a4e89535f6b3477bc3,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5224068110877892234, guid: f729f90bbd6597a4e89535f6b3477bc3,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5224068110877892234, guid: f729f90bbd6597a4e89535f6b3477bc3,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f729f90bbd6597a4e89535f6b3477bc3, type: 3}
@@ -613,7 +628,7 @@ GameObject:
   - component: {fileID: 2080192860}
   m_Layer: 9
   m_Name: Quad (1)
-  m_TagString: Untagged
+  m_TagString: objects
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -627,7 +642,7 @@ Transform:
   m_GameObject: {fileID: 2080192858}
   m_LocalRotation: {x: 0, y: 0, z: -0.38268343, w: 0.92387956}
   m_LocalPosition: {x: -0.1, y: 0.1, z: 0}
-  m_LocalScale: {x: 4, y: 4, z: 4}
+  m_LocalScale: {x: 6, y: 6, z: 6}
   m_Children: []
   m_Father: {fileID: 864124072}
   m_RootOrder: 1

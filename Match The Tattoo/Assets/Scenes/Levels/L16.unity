@@ -469,17 +469,17 @@ PrefabInstance:
     - target: {fileID: 3216604218632249468, guid: 5c58f1a625e7b4745834e1ea72f480d6,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3216604218632249468, guid: 5c58f1a625e7b4745834e1ea72f480d6,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3216604218632249468, guid: 5c58f1a625e7b4745834e1ea72f480d6,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3216604218632249471, guid: 5c58f1a625e7b4745834e1ea72f480d6,
         type: 3}
@@ -490,6 +490,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TagString
       value: food_and_drinks
+      objectReference: {fileID: 0}
+    - target: {fileID: 3216604218968629325, guid: 5c58f1a625e7b4745834e1ea72f480d6,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3216604218968629325, guid: 5c58f1a625e7b4745834e1ea72f480d6,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3216604218968629325, guid: 5c58f1a625e7b4745834e1ea72f480d6,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5c58f1a625e7b4745834e1ea72f480d6, type: 3}
