@@ -37,11 +37,15 @@ public class AdMobController : MonoBehaviour
     {
         try
         {
-            interstitial.Show();
+            if (interstitial.IsLoaded())
+                interstitial.Show();
+            else
+                Engine.Events.AdNotReady(PlacementType.interstitial);
             //GameAnalytics.NewAdEvent(GAAdAction.Request, GAAdType.Interstitial, "AdMob",PlacementType.interstitial.ToString());
         }
         catch (Exception e)
         {
+            Engine.Events.AdNotReady(PlacementType.interstitial);
             GameAnalytics.NewAdEvent(GAAdAction.FailedShow, GAAdType.Interstitial, "AdMob", PlacementType.interstitial.ToString());
             GameAnalytics.NewErrorEvent(GAErrorSeverity.Error, e.Message + Environment.NewLine + "-------Trace------" + Environment.NewLine + e.StackTrace);
         }
@@ -50,11 +54,15 @@ public class AdMobController : MonoBehaviour
     {
         try
         {
-            rewarded.Show();
+            if (rewarded.IsLoaded())
+                rewarded.Show();
+            else
+                Engine.Events.AdNotReady(PlacementType.rewardedVideo);
             //GameAnalytics.NewAdEvent(GAAdAction.Request, GAAdType.RewardedVideo, "AdMob", PlacementType.rewardedVideo.ToString());
         }
         catch (Exception e)
         {
+            Engine.Events.AdNotReady(PlacementType.rewardedVideo);
             GameAnalytics.NewAdEvent(GAAdAction.FailedShow, GAAdType.RewardedVideo, "AdMob", PlacementType.rewardedVideo.ToString());
             GameAnalytics.NewErrorEvent(GAErrorSeverity.Error, e.Message + Environment.NewLine + "-------Trace------" + Environment.NewLine + e.StackTrace);
         }

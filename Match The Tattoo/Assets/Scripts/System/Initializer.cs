@@ -60,6 +60,7 @@ public class Initializer : MonoBehaviour
         yield return new WaitForSeconds(0.25f);
         while (!Engine.initialized)
             yield return new WaitForEndOfFrame();
+        Engine.Events.LoadingCompleted();
         loadingScreen.gameObject.SetActive(false);
     }
 }

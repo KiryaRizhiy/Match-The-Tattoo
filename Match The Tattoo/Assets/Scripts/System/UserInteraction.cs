@@ -8,6 +8,7 @@ using UnityEngine.EventSystems;
 public class UserInteraction : MonoBehaviour
 {
     public UserInteractionTypes Type;
+    public bool isLobbyShouldBeSkipped;
 
     private Transform GDPRPanel
     {
@@ -16,30 +17,46 @@ public class UserInteraction : MonoBehaviour
             return transform.GetChild(2);
         }
     }
-
     void Update()
     {
     }
     void Awake()
     {
-        Engine.Events.initialized += HideGDPRPanel;
-        HideGDPRPanel();
+        if (Type == UserInteractionTypes.Lobby)
+        {
+            Engine.Events.initialized += HideGDPRPanel;
+            Engine.Events.gdprAccepted += SkipLobby;
+            Engine.Events.loadingCompleted += SkipLobby;
+            HideGDPRPanel();
+        }
     }
     void Start()
     {
     }
     void OnDestroy()
     {
-        Engine.Events.initialized -= HideGDPRPanel;
+        if (Type == UserInteractionTypes.Lobby)
+        {
+            Engine.Events.initialized -= HideGDPRPanel;
+            Engine.Events.gdprAccepted -= SkipLobby;
+            Engine.Events.loadingCompleted -= SkipLobby;
+        }
     }
-
-    public void NextLevel()
+    public void SkipLobby()
     {
-        Engine.CoreLevelDone();
+        if (!isLobbyShouldBeSkipped || Type != UserInteractionTypes.Lobby)
+            return;
+        if (Engine.initialized && Engine.meta.GDPRAccepted)
+            Play();
+    }
+    public void LevelWon()
+    {
+        Engine.Events.CoreReadyToChangeState(GameSessionState.Won);
     }
     public void Restart()
     {
-        Engine.RestartLevel();
+        Engine.Events.CoreReadyToChangeState(GameSessionState.Lost);
+        Engine.Events.CoreReadyToSwitchLevel();
     }
     public void SwitchPause()
     {
