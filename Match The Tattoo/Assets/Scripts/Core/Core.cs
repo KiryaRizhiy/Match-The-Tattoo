@@ -12,7 +12,7 @@ public class Core: MonoBehaviour
 {
     public GameObject camera;
     public GameObject controlFrame;
-    public List<Sprite> stencilSprites;
+    public List<StencilInput> stencilSprites;
     public List<GameObject> templates;
     public Material stencilMaterial;
     public float _positionGreenZone;
@@ -42,7 +42,7 @@ public class Core: MonoBehaviour
     protected GameObject _removeStencilButton
     {
         get
-        { return transform.GetChild(0).GetChild(3).gameObject; }
+        { return transform.GetChild(0).GetChild(0).gameObject; }
     }
     protected Camera _camera
     {
@@ -51,11 +51,32 @@ public class Core: MonoBehaviour
             return camera.GetComponent<Camera>();
         }
     }
-    protected int _points
+    protected Transform StencilTypeScrollsContainer
     {
-        set 
+        get
         {
-            transform.GetChild(0).GetChild(1).GetComponent<Text>().text = "Points: " + value.ToString();
+            return transform.GetChild(1).GetChild(3).GetChild(0).GetChild(1);
+        }
+    }
+    protected Transform StencilTypesScroll
+    {
+        get
+        {
+            return transform.GetChild(1).GetChild(3).GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(0);
+        }
+    }
+    protected Transform ColorSelectPanel
+    {
+        get
+        {
+            return transform.GetChild(1).GetChild(3).GetChild(1);
+        }
+    }
+    protected Transform SmallTemplate
+    {
+        get
+        {
+            return camera.transform.GetChild(3).GetChild(1);
         }
     }
     #endregion
@@ -67,7 +88,7 @@ public class Core: MonoBehaviour
         set
         {
             _currentStencilContaier = value;
-            _removeStencilButton.GetComponent<Button>().interactable = (value != null);
+            _removeStencilButton.GetComponent<Button>().interactable = (Stencils.Count != 0);
         }
     }
     private Stencil _currentStencilContaier;
@@ -168,11 +189,7 @@ public class Core: MonoBehaviour
     private void MakeTemplateGrey(GameObject obj)
     {
         if (obj.GetComponent<MeshRenderer>() != null)
-            obj.GetComponent<MeshRenderer>().material.color = new Color(
-                obj.GetComponent<MeshRenderer>().material.color.r,
-                obj.GetComponent<MeshRenderer>().material.color.g,
-                obj.GetComponent<MeshRenderer>().material.color.b,
-                _templateTransparency);
+            obj.GetComponent<MeshRenderer>().material.color = new Color(1f,1f,1f,_templateTransparency);
         for(int i = 0; i<obj.transform.childCount; i++)
         {
             MakeTemplateGrey(obj.transform.GetChild(i).gameObject);
@@ -180,24 +197,28 @@ public class Core: MonoBehaviour
     }
     private void UserFinishedLevel()
     {
-        _points = Mathf.CeilToInt(Estimate() * 100);
+        //Mathf.CeilToInt(Estimate() * 100);
         GenetateLevel();
     }
     private void ClearAllStencils()
     {
-        _currentStencil = null;
         foreach (Stencil _s in Stencils)
         {
             _s.Remove();
         }
         Stencils = new List<Stencil>();
+        _currentStencil = null;
     }
     private void GenetateLevel()
     {
         Transform _t = _template.transform.parent;
         Destroy(_template);
-        Instantiate(templates[UnityEngine.Random.Range(0, templates.Count)], _t);
+        GameObject _g = Instantiate(templates[UnityEngine.Random.Range(0, templates.Count)], _t);
         ClearAllStencils();
+        Destroy(SmallTemplate.GetChild(0).gameObject);
+        GameObject _sg = Instantiate(_g, SmallTemplate);
+        _sg.transform.localScale = Vector3.one;
+        _sg.transform.localPosition = Vector3.forward * (- 0.000003f);
         MakeTemplateGrey(_t.gameObject);
     }
     private float Estimate()
@@ -282,20 +303,48 @@ public class Core: MonoBehaviour
             return 1f;
         return 1f - Value / YellowZone;
     }
+    private void CopyStencil()
+    {
+        _currentStencil = new Stencil(_currentStencil);
+    }
+    private void SwitchStencilTypeScroll()
+    {
+        string _turnedOnTag = "Untagged";
+        //find turned on type
+        for (int i = 0; i < StencilTypesScroll.childCount; i++)
+        {
+            if (StencilTypesScroll.GetChild(i).GetComponent<Toggle>().isOn)
+                _turnedOnTag = StencilTypesScroll.GetChild(i).tag;
+        }
+        //activate type and deactivate other types
+        for (int i =0; i< StencilTypeScrollsContainer.childCount; i++)
+        {
+            if (StencilTypeScrollsContainer.GetChild(i).tag == _turnedOnTag)
+                StencilTypeScrollsContainer.GetChild(i).gameObject.SetActive(true);
+            else
+                StencilTypeScrollsContainer.GetChild(i).gameObject.SetActive(false);
+
+        }
+    }
+    private void SetStencilColor(Color _c)
+    {
+        if (_currentStencil != null)
+            _currentStencil.obj.GetComponent<MeshRenderer>().material.color = _c;
+    }
     #endregion
     #region UI Logic
     public void ToggleValueChanged(bool _isOn)
     {
         _template.SetActive(_isOn);
     }
-    public void NewStencil(int _stenciTypelNum)
+    public void NewStencil(int _stencilNum)
     {
         try
         {
 
             if (_currentStencil != null)
                 Destroy(_currentStencil.obj.transform.GetChild(0).gameObject);
-            Stencils.Add(new Stencil((StencilType)_stenciTypelNum, this));
+            Stencils.Add(new Stencil(_stencilNum));
             _currentStencil = Stencils[Stencils.Count - 1];
             Instantiate(controlFrame, _currentStencil.obj.transform);
         }
@@ -311,9 +360,9 @@ public class Core: MonoBehaviour
         //_currentStencilCandidate = null;
         _currentStencil = null;
     }
-    public void CopyStencil()
+    public void UICopyStencil()
     {
-        NewStencil((int)_currentStencil.type);
+        CopyStencil();
     }
     public void RefreshLevel()
     {
@@ -335,8 +384,32 @@ public class Core: MonoBehaviour
     {
         AdMobController.ShowRegularAd();
     }
+    public void TypesScrollValueChanged(bool on)
+    {
+        if (on)
+            SwitchStencilTypeScroll();
+    }
+    public void ShowColors()
+    {
+        ColorSelectPanel.gameObject.SetActive(true);
+    }
+    public void HideColors()
+    {
+        ColorSelectPanel.gameObject.SetActive(false);
+    }
+    public void SetColor(string _col)
+    {
+        Color _c;
+        if (!ColorUtility.TryParseHtmlString(_col, out _c))
+        {
+            Debug.LogError("Input color not recognized! " + _col);
+            return;
+        }
+        SetStencilColor(_c);
+        HideColors();
+    }
     #endregion
-
+    #region Classes
     public class Stencil
     {
         public StencilType type
@@ -346,23 +419,38 @@ public class Core: MonoBehaviour
             get; private set;
         }
         private MeshRenderer _objRenderer => obj.GetComponent<MeshRenderer>();
-        public Stencil(StencilType Type,Core GameData)
+        public Stencil(int StencilNum)
         {
-            type = Type;
+            StencilInput _si = Core.Main.stencilSprites[StencilNum];
+            type = _si.type;
             obj = GameObject.CreatePrimitive(PrimitiveType.Quad);
             obj.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
-            obj.name = Type.ToString() + "_" + Core.Stencils.Count.ToString();
-            obj.transform.SetParent(GameData._stencilContainer.transform);
+            obj.name = type.ToString() + "_" + Core.Stencils.Count.ToString();
+            obj.transform.SetParent(Core.Main._stencilContainer.transform);
             obj.transform.position = Vector3.zero;
             obj.tag = type.ToString();
-            _objRenderer.material = GameData.stencilMaterial;
-            _objRenderer.material.mainTexture = GameData.stencilSprites[(int)type].texture;
+            _objRenderer.material = _si._sm;
             obj.layer = 9;
+        }
+        public Stencil(Stencil stencilToCopy)
+        {
+            type = stencilToCopy.type;
+            obj = Instantiate(stencilToCopy.obj, Core.Main._stencilContainer.transform);
+            obj.name = type.ToString() + "_" + Core.Stencils.Count.ToString();
+            obj.transform.position = Vector3.zero;
+            obj.transform.rotation = Quaternion.Euler(Vector3.zero);
         }
         public void Remove()
         {
             Destroy(obj);
         }
     }
+    [Serializable]
+    public class StencilInput
+    {
+        public Material _sm;
+        public StencilType type;
+    }
+    #endregion
 }
-public enum StencilType {Heart, Plus, Round}
+public enum StencilType { emotions_and_faces, objects, food_and_drinks , animals_and_nature, people_and_gestures, symbols, activity_and_sport, transport,flags,}
