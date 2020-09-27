@@ -355,9 +355,9 @@ public class Core: MonoBehaviour
     }
     private void CopyStencil()
     {
-        Destroy(_currentStencil.obj.transform.GetChild(0).gameObject);
-        _currentStencil = new Stencil(_currentStencil);
-        Stencils.Add(_currentStencil);
+        DestroyImmediate(_currentStencil.obj.transform.GetChild(0).gameObject);
+        Stencils.Add(new Stencil(_currentStencil));
+        _currentStencil = Stencils[Stencils.Count - 1];
         Instantiate(controlFrame, _currentStencil.obj.transform);
     }
     private void SwitchStencilTypeScroll()
@@ -530,6 +530,7 @@ public class Core: MonoBehaviour
             obj.name = type.ToString() + "_" + Core.Stencils.Count.ToString();
             obj.transform.position = Vector3.zero;
             obj.transform.rotation = Quaternion.Euler(Vector3.zero);
+            obj.transform.localScale = Vector3.one;
         }
         public void Remove()
         {

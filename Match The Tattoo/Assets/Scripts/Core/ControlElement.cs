@@ -47,13 +47,14 @@ public class ControlElement : MonoBehaviour
         angle = 0f;
         _initialScaleMultiplyer = Vector3.Magnitude(transform.localPosition);
         _initialScale = transform.localScale;
+        transform.localScale = (1 / ControlElement.scale) * _initialScale;
     }
 
     private void Update()
     {
         try
         {
-            transform.localScale = 1 / ControlElement.scale * _initialScale;
+            transform.localScale = (1 / ControlElement.scale) * _initialScale;
             if (ControlType == AvailableControlTypes.ScaleAndRotation) isRotating = false;
             //if (EventSystem.current.IsPointerOverGameObject())
             //    return;
