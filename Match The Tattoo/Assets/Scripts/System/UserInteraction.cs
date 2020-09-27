@@ -13,7 +13,7 @@ public class UserInteraction : MonoBehaviour
     {
         get
         {
-            return transform.GetChild(1);
+            return transform.GetChild(2);
         }
     }
 

@@ -12,7 +12,14 @@ public class Initializer : MonoBehaviour
     {
         get
         {
-            return transform.GetChild(2).GetChild(0).GetChild(0).GetChild(1);
+            return loadingScreen.GetChild(0).GetChild(0).GetChild(1);
+        }
+    }
+    private Transform loadingScreen
+    {
+        get
+        {
+            return transform.GetChild(3);
         }
     }
     void Start()
@@ -53,6 +60,6 @@ public class Initializer : MonoBehaviour
         yield return new WaitForSeconds(0.25f);
         while (!Engine.initialized)
             yield return new WaitForEndOfFrame();
-        transform.GetChild(2).gameObject.SetActive(false);
+        loadingScreen.gameObject.SetActive(false);
     }
 }

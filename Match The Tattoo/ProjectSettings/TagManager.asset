@@ -4,10 +4,15 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - stencil
-  - Heart
-  - Plus
-  - Round
+  - emotions_and_faces
+  - objects
+  - food_and_drinks
+  - animals_and_nature
+  - people_and_gestures
+  - symbols
+  - activity_and_sport
+  - transport
+  - flags
   layers:
   - Default
   - TransparentFX

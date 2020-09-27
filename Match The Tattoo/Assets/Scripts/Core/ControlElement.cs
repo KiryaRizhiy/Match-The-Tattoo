@@ -88,7 +88,7 @@ public class ControlElement : MonoBehaviour
                 _hit = Physics.RaycastAll(Camera.main.ScreenPointToRay(Input.mousePosition));
                 if (Array.FindAll<RaycastHit>(_hit, x => x.transform == transform).Length != 0)
                 {
-                    Core.Main.CopyStencil();
+                    Core.Main.UICopyStencil();
                 }
             }
             if ((Input.GetMouseButtonDown(0) || (Input.touchCount == 1 ? Input.touches[0].phase == TouchPhase.Began : false)) && ControlType == AvailableControlTypes.Close)
