@@ -544,17 +544,17 @@ PrefabInstance:
     - target: {fileID: 1071433361174682668, guid: 46e1e5a1f37f39e4ea2d0d75de33dcf1,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1071433361174682668, guid: 46e1e5a1f37f39e4ea2d0d75de33dcf1,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1071433361174682668, guid: 46e1e5a1f37f39e4ea2d0d75de33dcf1,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1071433361174682669, guid: 46e1e5a1f37f39e4ea2d0d75de33dcf1,
         type: 3}
@@ -565,6 +565,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TagString
       value: animals_and_nature
+      objectReference: {fileID: 0}
+    - target: {fileID: 1071433361551138716, guid: 46e1e5a1f37f39e4ea2d0d75de33dcf1,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1071433361551138716, guid: 46e1e5a1f37f39e4ea2d0d75de33dcf1,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1071433361551138716, guid: 46e1e5a1f37f39e4ea2d0d75de33dcf1,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 46e1e5a1f37f39e4ea2d0d75de33dcf1, type: 3}
