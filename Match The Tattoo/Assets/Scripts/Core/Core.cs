@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 
-public class Core: MonoBehaviour
+public class Core : MonoBehaviour
 {
     public GameObject controlFrame;
     public List<StencilInput> stencilSprites;
@@ -92,6 +92,13 @@ public class Core: MonoBehaviour
             return transform.GetChild(2).GetChild(1).GetChild(1).GetChild(1);
         }
     }
+    protected Transform _customerEmotionImage
+    {
+        get
+        {
+            return transform.GetChild(0).GetChild(3).GetChild(0);
+        }
+    }
     #endregion
     #region Logical propetries
     private Stencil _currentStencil
@@ -108,12 +115,17 @@ public class Core: MonoBehaviour
     private Vector3 _dragPosition;
     private Vector3 _previousDragPosition;
     private Vector3 _controlsPosition;
-    private float mZCoord;
+    private static Texture2D _angryEmotion;
+    private static Texture2D _sadEmotion;
+    private static Texture2D _thinkingEmotion;
+    private static Texture2D _thumbsUpEmotion;
+    private static Texture2D _heartEmotion;
     protected static List<Stencil> Stencils;
     public static Core Main;
     public static bool isDrag;
     private bool hold;
     private bool isTestNotInProgress;
+    private bool isEmotionShown;
     #endregion
     #region Constants
     private const float _templateTransparency = 0.2f;
@@ -138,6 +150,7 @@ public class Core: MonoBehaviour
     #region Unity events
     private void Start()
     {
+        isEmotionShown = false;
         Main = this;
         hold = false;
         isDrag = false;
@@ -146,10 +159,11 @@ public class Core: MonoBehaviour
         ShowTemplateAvatar();
         MakeTemplateGrey(_template);
         Engine.Events.CoreReadyToChangeState(GameSessionState.InProgress);
+        ShowEmotion();
     }
     void Update()
     {
-        if(_currentStencil != null)
+        if (_currentStencil != null)
         {
             //Logger.UpdateContent(UILogDataType.Logic, "Stencil postion: " + _currentStencil.obj.transform.position
             //    + ", rotation: " + _currentStencil.obj.transform.rotation.eulerAngles
@@ -166,7 +180,7 @@ public class Core: MonoBehaviour
         if (!EventSystem.current.IsPointerOverGameObject() && !ControlElement.isRotating && (Input.GetMouseButtonDown(0) || (Input.touchCount == 1 ? Input.touches[0].phase == TouchPhase.Began : false)))
         {
             //Logger.UpdateContent(UILogDataType.Controls, "Start drag");
-            if (!Physics.Raycast(Camera.main.ScreenPointToRay(_controlsPosition), out _hit,100f,_controlCenterMask))
+            if (!Physics.Raycast(Camera.main.ScreenPointToRay(_controlsPosition), out _hit, 100f, _controlCenterMask))
                 Debug.Log("Stencil drag unavailable cause of empty raycast hit");
             else
             {
@@ -199,6 +213,30 @@ public class Core: MonoBehaviour
             //Logger.UpdateContent(UILogDataType.Controls, "Finish drag");
             hold = false;
         }
+        if (Stencils.Count > 0)
+        {
+            if (isDrag || ControlElement.isRotating)
+                isEmotionShown = false;
+            else
+            {
+                if (!isEmotionShown)
+                {
+                    ShowEmotion();
+                    isEmotionShown = true;
+                }
+            }
+        }
+    }
+
+    #endregion
+    #region External logic
+    public static void LoadResources()
+    {
+        _angryEmotion = Resources.Load<Texture2D>("Textures/CustomerEmotions/angry");
+        _sadEmotion = Resources.Load<Texture2D>("Textures/CustomerEmotions/sad");
+        _thinkingEmotion = Resources.Load<Texture2D>("Textures/CustomerEmotions/thinking");
+        _thumbsUpEmotion = Resources.Load<Texture2D>("Textures/CustomerEmotions/thumbsUp");
+        _heartEmotion = Resources.Load<Texture2D>("Textures/CustomerEmotions/heart");
     }
     #endregion
     #region Internal logic
@@ -219,7 +257,7 @@ public class Core: MonoBehaviour
         {
             obj.GetComponent<MeshRenderer>().material.color = new Color(0f, 0f, 0f, _templateTransparency);
         }
-        for(int i = 0; i<obj.transform.childCount; i++)
+        for (int i = 0; i < obj.transform.childCount; i++)
         {
             MakeTemplateGrey(obj.transform.GetChild(i).gameObject);
         }
@@ -232,6 +270,7 @@ public class Core: MonoBehaviour
         }
         Stencils = new List<Stencil>();
         _currentStencil = null;
+        ShowEmotion();
     }
     private void ShowTemplateAvatar()
     {
@@ -247,14 +286,14 @@ public class Core: MonoBehaviour
         GameObject _currentMathchedObj;
         List<float> _estimations = new List<float>();
         Debug.Log("Comparing " + _template.name + " with " + _stencilContainer.name);
-        for(int i = 0; i< _template.transform.childCount; i++)
+        for (int i = 0; i < _template.transform.childCount; i++)
         {
             if (_template.transform.GetChild(i).gameObject.layer == 8)
             {
                 Debug.Log(_template.transform.GetChild(i).name + "skipped");
                 continue;
             }
-            _currentMathchedObj = MatchObject(_template.transform.GetChild(i).gameObject,_alreadyMatched);
+            _currentMathchedObj = MatchObject(_template.transform.GetChild(i).gameObject, _alreadyMatched);
             if (_currentMathchedObj == null)
                 _estimations.Add(0f);
             else
@@ -267,7 +306,33 @@ public class Core: MonoBehaviour
         foreach (float _f in _estimations)
             _result += _f;
         Debug.Log("Total estimation result: " + (_result / _estimations.Count));
-        return _result/_estimations.Count;
+        return _result / _estimations.Count;
+    }
+    private void ShowEmotion()
+    {
+        if (Stencils.Count == 0)
+        {
+            _customerEmotionImage.GetComponent<RawImage>().color = new Color(0f, 0f, 0f, 0f);
+            return;
+        }
+        _customerEmotionImage.GetComponent<RawImage>().color = Color.white;
+        float _est = Estimate();
+        if (_est >= 0 && _est < 0.2f)
+            _customerEmotionImage.GetComponent<RawImage>().texture = _angryEmotion;
+        if (_est >= 0.2 && _est < 0.4f)
+            _customerEmotionImage.GetComponent<RawImage>().texture = _sadEmotion;
+        if (_est >= 0.4f && _est < 0.6f)
+            _customerEmotionImage.GetComponent<RawImage>().texture = _thinkingEmotion;
+        if (_est >= 0.6f && _est < 0.8f)
+            _customerEmotionImage.GetComponent<RawImage>().texture = _thumbsUpEmotion;
+        if (_est >= 0.8f && _est <= 1f)
+            _customerEmotionImage.GetComponent<RawImage>().texture = _heartEmotion;
+        if (_est < 0 || _est > 1f)
+        {
+            Debug.LogError("Impossible estimation score: " + _est);
+            _customerEmotionImage.GetComponent<RawImage>().color = new Color(0f, 0f, 0f, 0f);
+        }
+
     }
     private GameObject MatchObject(GameObject Target, List<GameObject> ExceptedObjects)
     {
@@ -360,6 +425,14 @@ public class Core: MonoBehaviour
         _currentStencil = Stencils[Stencils.Count - 1];
         Instantiate(controlFrame, _currentStencil.obj.transform);
     }
+    private void RemoveStencil()
+    {
+        _currentStencil.Remove();
+        Stencils.Remove(_currentStencil);
+        //_currentStencilCandidate = null;
+        _currentStencil = null;
+        ShowEmotion();
+    }
     private void SwitchStencilTypeScroll()
     {
         string _turnedOnTag = "Untagged";
@@ -386,21 +459,39 @@ public class Core: MonoBehaviour
     }
     private void UserFinishedDrawing()
     {
-        float _e = Estimate();//Mathf.CeilToInt(Estimate() * 100);
-
-        if (_e > 0)
+        ShowStarResult(Estimate());//Mathf.CeilToInt(Estimate() * 100);
+        
+        Engine.Events.CoreReadyToChangeState(GameSessionState.Won);
+        AdMobController.ShowRegularAd();
+    }
+    public void ShowStarResult(float Estimation)
+    {
+        RectTransform _r;
+        if (Estimation <= 0)
         {
-            if (_e <= _firstStarThreshold / 100f)
+            yellowStarsPannel.GetChild(0).gameObject.SetActive(false);
+            yellowStarsPannel.GetChild(1).gameObject.SetActive(false);
+            yellowStarsPannel.GetChild(2).gameObject.SetActive(false);
+        }
+        else
+        {
+            if (Estimation <= _firstStarThreshold / 100f)
             {
                 yellowStarsPannel.GetChild(0).gameObject.SetActive(true);
+                _r = yellowStarsPannel.GetChild(0).GetComponent<RectTransform>();
+                _r.sizeDelta = new Vector2(_r.rect.width * (Estimation/ (_firstStarThreshold / 100f)), _r.rect.height);
+                Debug.Log("Threshold: " + _r.rect.width * (Estimation / (_firstStarThreshold / 100f)));
                 yellowStarsPannel.GetChild(1).gameObject.SetActive(false);
                 yellowStarsPannel.GetChild(2).gameObject.SetActive(false);
             }
             else
-            if (_e <= _secondStarThreshold / 100f)
+            if (Estimation <= _secondStarThreshold / 100f)
             {
                 yellowStarsPannel.GetChild(0).gameObject.SetActive(true);
                 yellowStarsPannel.GetChild(1).gameObject.SetActive(true);
+                _r = yellowStarsPannel.GetChild(1).GetComponent<RectTransform>();
+                _r.sizeDelta = new Vector2(_r.rect.width * ((Estimation - _firstStarThreshold / 100f )/ ((_secondStarThreshold - _firstStarThreshold) / 100f)), _r.rect.height);
+                Debug.Log("Threshold: " + _r.rect.width * ((Estimation - _firstStarThreshold / 100f) / ((_secondStarThreshold - _firstStarThreshold) / 100f)));
                 yellowStarsPannel.GetChild(2).gameObject.SetActive(false);
             }
             else
@@ -408,10 +499,11 @@ public class Core: MonoBehaviour
                 yellowStarsPannel.GetChild(0).gameObject.SetActive(true);
                 yellowStarsPannel.GetChild(1).gameObject.SetActive(true);
                 yellowStarsPannel.GetChild(2).gameObject.SetActive(true);
+                _r = yellowStarsPannel.GetChild(2).GetComponent<RectTransform>();
+                _r.sizeDelta = new Vector2(_r.rect.width * ((Estimation - _secondStarThreshold / 100f)/ ((100 - _secondStarThreshold) / 100f)), _r.rect.height);
+                Debug.Log("Threshold: " + _r.rect.width * ((Estimation - _secondStarThreshold / 100f) / ((100 - _secondStarThreshold) / 100f)));
             }
         }
-        Engine.Events.CoreReadyToChangeState(GameSessionState.Won);
-        AdMobController.ShowRegularAd();
     }
     private void ReadyToSwitchLevel()
     {
@@ -439,12 +531,9 @@ public class Core: MonoBehaviour
             Logger.AddContent(UILogDataType.GameState, "Stencil add error " + e.Message + " trace: " + e.StackTrace);
         }
     }
-    public void RemoveStencil()
+    public void UIRemoveStencil()
     {
-        _currentStencil.Remove();
-        Stencils.Remove(_currentStencil);
-        //_currentStencilCandidate = null;
-        _currentStencil = null;
+        RemoveStencil();
     }
     public void UICopyStencil()
     {
@@ -461,10 +550,6 @@ public class Core: MonoBehaviour
     public void UIReadyToSwitchLevel()
     {
         ReadyToSwitchLevel();
-    }
-    public void ExtimationTest()
-    {
-        Estimate();
     }
     public void ShowReward()
     {

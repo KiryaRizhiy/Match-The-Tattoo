@@ -115,6 +115,7 @@ public static class Engine
         Subscribe();
         Logger.AddContent(UILogDataType.Init, "Loading resources");
         Localization.LoadLocals(Application.systemLanguage);
+        Core.LoadResources();
         initialized = true;
     }
     public static void InitializeTest()

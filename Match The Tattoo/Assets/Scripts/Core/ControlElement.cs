@@ -97,7 +97,7 @@ public class ControlElement : MonoBehaviour
                 _hit = Physics.RaycastAll(Camera.main.ScreenPointToRay(Input.mousePosition));
                 if (Array.FindAll<RaycastHit>(_hit, x => x.transform == transform).Length != 0)
                 {
-                    Core.Main.RemoveStencil();
+                    Core.Main.UIRemoveStencil();
                 }
             }
             //Logger.UpdateContent(UILogDataType.Controls, "Is rotating: " + isRotating + ", is hold " + hold + ", angle :" + angle + ", offset angle " + _offsetAngle);

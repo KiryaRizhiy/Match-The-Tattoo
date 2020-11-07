@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -35,7 +36,7 @@ public static class Functions
         }
         return _s;
     }
-    public static Texture2D CutAndLerpTexture(Texture2D source, int percent, float lerpCoeffitient, Color color, bool useTextureAlpha = true)
+    public static Texture2D CutAndLerpTexture(Texture2D source, int percent, float lerpCoeffitient, Color color, Vector2 Diraction, bool useTextureAlpha = true)
     {
         if (lerpCoeffitient > 1f)
         {
@@ -54,6 +55,8 @@ public static class Functions
         Graphics.Blit(source, renderTexture);
         _txt.ReadPixels(new Rect(0f, 0f, renderTexture.width, renderTexture.height), 0, 0);
         _txt.Apply();
+
+
         for (int x = 0; x < _txt.width; x++)
             for (int y = 0; y < _txt.height; y++)
             {
